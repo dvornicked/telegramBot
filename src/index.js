@@ -18,9 +18,12 @@ mongoose.connect(config.DB_URL)
     .catch(err => console.log(err))
 
 require('./models/film.model')
+require('./models/cinema.model')
 
 const Film = mongoose.model('films')
+const Cinema = mongoose.model('cinemas')
 // database.films.forEach(f => new Film(f).save())
+// database.cinemas.forEach(c => new Cinema(c).save())
 
 bot.on('message', msg => {
     console.log('Working')
