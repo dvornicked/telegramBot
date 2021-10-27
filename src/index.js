@@ -34,6 +34,15 @@ bot.on('message', msg => {
                 reply_markup: {keyboard: keyboard.films}
             })
             break
+        case kb.film.comedy:
+            sendFilmsByQuery(chatId, {type: 'comedy'})
+            break
+        case kb.film.action:
+            sendFilmsByQuery(chatId, {type: 'action'})
+            break
+        case kb.film.random:
+            sendFilmsByQuery(chatId)
+            break
         case kb.home.cinemas:
             break
         case kb.back:
@@ -52,3 +61,27 @@ bot.onText(RegExp('\/start'), msg => {
         }
     })
 })
+
+function sendFilmsByQuery(chatId, query) {
+    Film.find(query).then(films => {
+
+        const html = films.map((f, i) => {
+            return `<b>${i + 1}</b> ${f.name} - /${f.uuid}`
+        }).join('\n')
+
+        sendHTML(chatId, html, 'films')
+    })
+}
+
+function sendHTML(chatId, html, kbName = null) {
+    const options = {
+        parse_mode: 'HTML'
+    }
+    if (kbName) {
+        options['reply_markup'] = {
+            keyboard: keyboard[kbName]
+        }
+    }
+
+    bot.sendMessage(chatId, html, options)
+}
