@@ -62,11 +62,45 @@ bot.onText(RegExp('\/start'), msg => {
     })
 })
 
+bot.onText(RegExp('\/f(.+)'), (msg, [source, match]) => {
+    const filmUuid = helper.getItemUuid(source)
+    const chatId = helper.getChatId(msg)
+
+    Film.findOne({uuid: filmUuid}).then(film => {
+
+        const caption = `Name: ${film.name}\nYear: ${film.year}\nRate: ${film.rate}\nLength: ${film.length}\nCountry: ${film.country}`
+
+        bot.sendPhoto(chatId, film.picture, {
+            caption,
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        {
+                            text: 'Add to favourite',
+                            callback_data: film.uuid
+                        },
+                        {
+                            text: 'Show the cinemas',
+                            callback_data: film.uuid
+                        }
+                    ],
+                    [
+                        {
+                            text: 'Kinopoisk',
+                            url: film.link
+                        }
+                    ]
+                ]
+            }
+        })
+    })
+})
+
 function sendFilmsByQuery(chatId, query) {
     Film.find(query).then(films => {
 
         const html = films.map((f, i) => {
-            return `<b>${i + 1}</b> ${f.name} - /${f.uuid}`
+            return `<b>${i + 1}</b> ${f.name} - /f${f.uuid}`
         }).join('\n')
 
         sendHTML(chatId, html, 'films')
