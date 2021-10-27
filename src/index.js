@@ -1,6 +1,8 @@
 process.env.NTBA_FIX_319 = 1
 const TelegramBot = require('node-telegram-bot-api')
 const mongoose = require('mongoose')
+const geolib = require('geolib')
+const _ = require('lodash')
 const config = require('./config')
 const helper = require('./helper')
 const keyboard = require('./keyboard')
@@ -47,12 +49,20 @@ bot.on('message', msg => {
             sendFilmsByQuery(chatId)
             break
         case kb.home.cinemas:
+            bot.sendMessage(chatId, 'Send location', {
+                reply_markup: {
+                    keyboard: keyboard.cinemas
+                }
+            })
             break
         case kb.back:
             bot.sendMessage(chatId, 'What do you want to see?', {
                 reply_markup: {keyboard: keyboard.home}
             })
             break
+    }
+    if (msg.location) {
+        getCinemasInCoords(chatId, msg.location)
     }
 })
 
@@ -121,4 +131,19 @@ function sendHTML(chatId, html, kbName = null) {
     }
 
     bot.sendMessage(chatId, html, options)
+}
+
+function getCinemasInCoords(chatId, location) {
+    Cinema.find({}).then(cinemas => {
+
+        cinemas.forEach(c => {
+            c.distance = geolib.getDistance(location, c.location) / 1000
+        })
+
+        cinemas = _.sortBy(cinemas, 'distance')
+        const html = cinemas.map((c, i) => {
+            return `<b>${i + 1}</b> ${c.name}. <em>Distance</em> - <strong>${c.distance}</strong> km. /c${c.uuid}`
+        }).join('\n')
+        sendHTML(chatId, html, 'home')
+    })
 }
