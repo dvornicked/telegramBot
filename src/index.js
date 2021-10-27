@@ -109,6 +109,36 @@ bot.onText(RegExp('\/f(.+)'), (msg, [source, match]) => {
     })
 })
 
+bot.onText(RegExp('\/c(.+)'), (msg, [source, match]) => {
+    const cinemaUuid = helper.getItemUuid(source)
+    const chatId = helper.getChatId(msg)
+
+    Cinema.findOne({uuid: cinemaUuid}).then(cinema => {
+        bot.sendMessage(chatId, `Cinema ${cinema.name}`, {
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        {
+                            text: cinema.name,
+                            url: cinema.url
+                        },
+                        {
+                            text: `Show on the map`,
+                            callback_data: JSON.stringify(cinema.uuid)
+                        }
+                    ],
+                    [
+                        {
+                            text: 'Show films',
+                            callback_data: JSON.stringify(cinema.films)
+                        }
+                    ]
+                ]
+            }
+        })
+    })
+})
+
 function sendFilmsByQuery(chatId, query) {
     Film.find(query).then(films => {
 
