@@ -194,6 +194,35 @@ bot.on('callback_query', query => {
     }
 })
 
+bot.on('inline_query', query => {
+    Film.find({}).then(films => {
+        const results = films.map( f => {
+            const caption = `Name: ${f.name}\nYear: ${f.year}\nRate: ${f.rate}\nLength: ${f.length}\nCountry: ${f.country}`
+            return {
+                id: f.uuid,
+                type: 'photo',
+                photo_url: f.picture,
+                thumb_url: f.picture,
+                caption,
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: `Kinopoisk`,
+                                url: f.link
+                            }
+                        ]
+                    ]
+                }
+            }
+        })
+
+        bot.answerInlineQuery(query.id, results, {
+            cache_time: 0
+        })
+    })
+})
+
 function sendFilmsByQuery(chatId, query) {
     Film.find(query).then(films => {
 
